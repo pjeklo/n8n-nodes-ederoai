@@ -1,16 +1,5 @@
 import { INodeType, INodeTypeDescription } from "n8n-workflow";
-import {
-  N8NPropertiesBuilder,
-  N8NPropertiesBuilderConfig,
-} from "@devlikeapro/n8n-openapi-node";
-import * as doc from "./openapi.json";
-import { EderoaiOperationsCollector } from "./EderoaiOperationsCollector";
-
-const config: N8NPropertiesBuilderConfig = {
-  OperationsCollector: EderoaiOperationsCollector as any,
-};
-const parser = new N8NPropertiesBuilder(doc, config);
-const properties = parser.build();
+import { ederoaiProperties } from "./Ederoai.properties";
 
 export class Ederoai implements INodeType {
   description: INodeTypeDescription = {
@@ -39,6 +28,6 @@ export class Ederoai implements INodeType {
       },
       baseURL: "={{$credentials.url}}",
     },
-    properties: properties,
+    properties: ederoaiProperties,
   };
 }
