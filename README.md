@@ -3,11 +3,13 @@
   <img src="https://edero.ai/wp-content/uploads/2021/01/edero.png" alt="edero.ai" height="64" >
   <br>
   <strong>Powered by <a href="https://edero.ai/">edero.ai</a></strong>
-</div>
+<br>
+<br>
 
-[![edero.ai](https://img.shields.io/badge/Powered%20by-edero.ai-FF6B35?style=flat&logo=video&logoColor=white)](https://edero.ai/)
 [![n8n](https://img.shields.io/badge/n8n-Community%20Node-EA4B71?style=flat)](https://n8n.io/)
 [![npm](https://img.shields.io/npm/v/n8n-nodes-ederoai?color=CB3837&logo=npm)](https://www.npmjs.com/package/n8n-nodes-ederoai)
+
+</div>
 
 This is an n8n community node. It lets you use EderoAI in your n8n workflows.
 
