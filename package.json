@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-ederoai",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "n8n community node for edero.ai video automation",
   "keywords": [
     "n8n-community-node-package",
@@ -25,7 +25,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "npx ts-node generate-properties.ts && tsc && gulp build:icons",
+    "build": "npx ts-node properties-generator/generate-properties.ts && tsc && gulp build:icons",
     "dev": "tsc --watch",
     "test": "jest",
     "format": "prettier nodes credentials --write",
