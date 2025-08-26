@@ -7,7 +7,7 @@
 <br>
 
 [![n8n](https://img.shields.io/badge/n8n-Community%20Node-EA4B71?style=flat)](https://n8n.io/)
-[![npm](https://img.shields.io/npm/v/n8n-nodes-ederoai?color=CB3837&logo=npm)](https://www.npmjs.com/package/n8n-nodes-ederoai)
+[![npm](https://img.shields.io/npm/v/@edero.ai/n8n-nodes-ederoai?color=CB3837&logo=npm)](https://www.npmjs.com/package/@edero.ai/n8n-nodes-ederoai)
 
 </div>
 
