@@ -1,0 +1,972 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "EderoAI Public API",
+    "description": "Public API for EderoAI video generation services. \n\n## Authentication\nAll endpoints require API key authentication via the `Authorization` header:\n```\nAuthorization: Bearer YOUR_API_KEY\n```\n\n## Rate Limits\nAPI usage is subject to token-based billing and rate limits based on your plan.\n\n## Base URL\n- `https://app.edero.ai/api/public`\n\n## Status Codes\n- `200` - Success\n- `400` - Bad Request (validation error)\n- `401` - Unauthorized (invalid/missing API key)\n- `404` - Not Found\n- `500` - Internal Server Error\n",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://app.edero.ai/api/public"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/quiz": {
+      "post": {
+        "summary": "Create quiz video",
+        "description": "Generate a quiz video with questions, answers, and voice narration",
+        "tags": ["Quiz"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["questions", "voiceSettings"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Video title/name",
+                    "example": "Geography Quiz"
+                  },
+                  "questions": {
+                    "type": "array",
+                    "description": "Array of quiz questions",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "required": ["text", "answers"],
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "description": "Question text",
+                          "example": "What is the capital of France?"
+                        },
+                        "answers": {
+                          "type": "array",
+                          "description": "Array of possible answers",
+                          "minItems": 1,
+                          "items": {
+                            "type": "object",
+                            "required": ["answerText"],
+                            "properties": {
+                              "answerText": {
+                                "type": "string",
+                                "example": "Paris"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "voiceSettings": {
+                    "$ref": "#/components/schemas/VoiceSettings"
+                  },
+                  "answerTemplate": {
+                    "type": "string",
+                    "description": "Template for answer text formatting",
+                    "default": "{{answer}}",
+                    "example": "The answer is {{answer}}"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": ["light", "dark"],
+                    "default": "light"
+                  },
+                  "questionDisplayTime": {
+                    "type": "number",
+                    "description": "Time to display each question (seconds)",
+                    "minimum": 1,
+                    "example": 5
+                  },
+                  "answerDisplayTime": {
+                    "type": "number",
+                    "description": "Time to display each answer (seconds)",
+                    "minimum": 1,
+                    "example": 3
+                  },
+                  "showCorrectAnswers": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to highlight correct answers"
+                  },
+                  "backgroundSettings": {
+                    "$ref": "#/components/schemas/BackgroundSettings"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quiz video creation started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/fake-text": {
+      "post": {
+        "summary": "Create fake text conversation video",
+        "description": "Generate a video of fake text messages between two participants",
+        "tags": ["Fake Text"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["template", "messages", "leftVoice", "rightVoice"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Video title/name",
+                    "example": "Funny Conversation"
+                  },
+                  "template": {
+                    "type": "string",
+                    "enum": ["iMessage", "whatsapp", "instagram", "tinder"],
+                    "description": "Chat template style",
+                    "example": "iMessage"
+                  },
+                  "messages": {
+                    "type": "array",
+                    "description": "Array of chat messages",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "required": ["type"],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["left", "right"],
+                          "description": "Message sender side"
+                        },
+                        "text": {
+                          "type": "string",
+                          "description": "Message text (required for text messages)",
+                          "example": "Hey, how are you?"
+                        },
+                        "contentType": {
+                          "type": "string",
+                          "enum": ["text", "photo"],
+                          "default": "text",
+                          "description": "Type of message content"
+                        },
+                        "photoUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "description": "URL to photo (required for photo messages)"
+                        },
+                        "width": {
+                          "type": "integer",
+                          "description": "Photo width in pixels (required for photo messages)",
+                          "minimum": 1
+                        },
+                        "height": {
+                          "type": "integer",
+                          "description": "Photo height in pixels (required for photo messages)",
+                          "minimum": 1
+                        }
+                      }
+                    }
+                  },
+                  "leftVoice": {
+                    "$ref": "#/components/schemas/VoiceSettings"
+                  },
+                  "rightVoice": {
+                    "$ref": "#/components/schemas/VoiceSettings"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "enum": ["light", "dark"],
+                    "default": "light"
+                  },
+                  "messageGap": {
+                    "type": "number",
+                    "description": "Gap between messages in milliseconds",
+                    "minimum": 0,
+                    "default": 0,
+                    "example": 1000
+                  },
+                  "speed": {
+                    "type": "number",
+                    "description": "Playback speed multiplier",
+                    "minimum": 0.1,
+                    "maximum": 5,
+                    "default": 1,
+                    "example": 1.5
+                  },
+                  "emojiType": {
+                    "type": "string",
+                    "enum": ["facebook", "twitter", "apple", "google"],
+                    "default": "facebook",
+                    "description": "Emoji style to use"
+                  },
+                  "contactInfo": {
+                    "type": "object",
+                    "description": "Contact information for the conversation",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                      },
+                      "nickname": {
+                        "type": "string",
+                        "example": "johnny"
+                      },
+                      "image": {
+                        "type": "string",
+                        "description": "Contact avatar URL or 'auto' for letter avatar",
+                        "example": "auto"
+                      },
+                      "messageCount": {
+                        "type": "integer",
+                        "description": "Number of messages in conversation history",
+                        "minimum": 0,
+                        "example": 150
+                      }
+                    }
+                  },
+                  "typography": {
+                    "type": "object",
+                    "description": "Typography settings for messages",
+                    "properties": {
+                      "left": {
+                        "$ref": "#/components/schemas/TypographySettings"
+                      },
+                      "right": {
+                        "$ref": "#/components/schemas/TypographySettings"
+                      }
+                    }
+                  },
+                  "backgroundSettings": {
+                    "$ref": "#/components/schemas/BackgroundSettings"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fake text video creation started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/reddit-story": {
+      "post": {
+        "summary": "Create Reddit story video",
+        "description": "Generate a video from a Reddit post or custom story content",
+        "tags": ["Reddit Story"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "storySource", "voiceSettings"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Video title/name",
+                    "example": "AITA Reddit Story"
+                  },
+                  "template": {
+                    "type": "string",
+                    "enum": ["TextOnly"],
+                    "default": "TextOnly",
+                    "description": "Currently only TextOnly template is supported"
+                  },
+                  "storySource": {
+                    "type": "object",
+                    "required": ["type"],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": ["reddit", "custom"],
+                        "description": "Source type for the story"
+                      },
+                      "redditUrl": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "Reddit post URL (required if type is 'reddit')",
+                        "example": "https://www.reddit.com/r/AmItheAsshole/comments/abc123/title"
+                      },
+                      "customContent": {
+                        "type": "string",
+                        "description": "Custom story content (required if type is 'custom')",
+                        "example": "This is my custom story content..."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "Story title (required if type is 'custom')",
+                        "example": "My Custom Story Title"
+                      }
+                    }
+                  },
+                  "voiceSettings": {
+                    "$ref": "#/components/schemas/VoiceSettings"
+                  },
+                  "redditSettings": {
+                    "type": "object",
+                    "description": "Reddit-specific settings (only applies to reddit type)",
+                    "properties": {
+                      "commentLimit": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 50,
+                        "default": 5,
+                        "description": "Maximum number of comments to include"
+                      },
+                      "depthLimit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10,
+                        "default": 3,
+                        "description": "Maximum comment thread depth"
+                      },
+                      "minScore": {
+                        "type": "integer",
+                        "default": -100,
+                        "description": "Minimum comment score to include"
+                      },
+                      "includeComments": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Whether to include comments in the video"
+                      }
+                    }
+                  },
+                  "customStoryMetadata": {
+                    "type": "object",
+                    "description": "Metadata for custom stories (only applies to custom type)",
+                    "properties": {
+                      "subreddit": {
+                        "type": "string",
+                        "description": "Subreddit name (without r/)",
+                        "example": "AmItheAsshole"
+                      },
+                      "author": {
+                        "type": "string",
+                        "description": "Story author username",
+                        "example": "StoryTeller123"
+                      },
+                      "score": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 1,
+                        "description": "Post score/upvotes"
+                      },
+                      "upvoteRatio": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "default": 1,
+                        "description": "Upvote ratio (0-1)"
+                      },
+                      "numComments": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0,
+                        "description": "Number of comments on the post"
+                      }
+                    }
+                  },
+                  "backgroundSettings": {
+                    "$ref": "#/components/schemas/BackgroundSettingsReddit"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reddit story video creation started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/long-story": {
+      "post": {
+        "summary": "Create long story video",
+        "description": "Generate a video from a long-form story with narration and visuals",
+        "tags": ["Long Story"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LongStoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Long story video creation started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/task/{taskId}": {
+      "get": {
+        "summary": "Get task status",
+        "description": "Get the status of any video generation task by its ID",
+        "tags": ["Task"],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The task/video ID returned from video creation endpoints",
+            "example": "video_123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "taskId": {
+                      "type": "string",
+                      "example": "video_123"
+                    },
+                    "taskStatus": {
+                      "type": "string",
+                      "enum": [
+                        "generating_audio",
+                        "generating_composition",
+                        "rendering",
+                        "processing",
+                        "completed",
+                        "failed",
+                        "pending"
+                      ],
+                      "description": "Current status of the task",
+                      "example": "completed"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Human-readable status message",
+                      "example": "Video creation completed successfully"
+                    },
+                    "projectTitle": {
+                      "type": "string",
+                      "example": "My Video"
+                    },
+                    "template": {
+                      "type": "string",
+                      "description": "Template used for the video",
+                      "example": "iMessage"
+                    },
+                    "videoUrl": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Download URL for completed video",
+                      "example": "https://s3.amazonaws.com/bucket/video_123.mp4"
+                    },
+                    "completedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Completion timestamp (only present when completed)"
+                    },
+                    "processingTime": {
+                      "type": "string",
+                      "description": "Time spent processing (only present when processing)",
+                      "example": "5 minute(s)"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "Error details (only present when failed)",
+                      "example": "Render failed"
+                    },
+                    "troubleshooting": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Troubleshooting tips (only present when failed)",
+                      "example": [
+                        "Check that all voice IDs are valid",
+                        "Ensure background settings are correct"
+                      ]
+                    },
+                    "note": {
+                      "type": "string",
+                      "description": "Additional notes or warnings",
+                      "example": "Rendering is taking longer than usual"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "description": "Task not found or access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API Key",
+        "description": "API key for authentication"
+      }
+    },
+    "schemas": {
+      "VoiceSettings": {
+        "type": "object",
+        "required": ["voiceId"],
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "ElevenLabs voice ID",
+            "example": "21m00Tcm4TlvDq8ikWAM"
+          },
+          "stability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5,
+            "description": "Voice stability (0-1)",
+            "example": 0.7
+          },
+          "similarityBoost": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5,
+            "description": "Voice similarity boost (0-1)",
+            "example": 0.6
+          },
+          "styleExaggeration": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5,
+            "description": "Style exaggeration (0-1)",
+            "example": 0.3
+          }
+        }
+      },
+      "TypographySettings": {
+        "type": "object",
+        "properties": {
+          "font": {
+            "type": "string",
+            "description": "Font family name",
+            "example": "Arial"
+          },
+          "color": {
+            "type": "string",
+            "description": "Text color (hex format)",
+            "example": "#ffffff"
+          },
+          "fontSize": {
+            "type": "number",
+            "minimum": 8,
+            "maximum": 72,
+            "description": "Font size in points",
+            "example": 16
+          },
+          "backgroundColor": {
+            "type": "string",
+            "description": "Background color (hex format)",
+            "example": "#000000"
+          }
+        }
+      },
+      "BackgroundSettings": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["preset", "generate", "upload"],
+            "description": "Type of background to use",
+            "example": "preset"
+          },
+          "presetPrompt": {
+            "type": "string",
+            "description": "Preset background prompt/ID",
+            "example": "modern office"
+          },
+          "customPrompt": {
+            "type": "string",
+            "description": "Custom AI generation prompt",
+            "example": "A futuristic cityscape at sunset"
+          },
+          "selectedBackgroundId": {
+            "type": "string",
+            "description": "ID of selected preset background",
+            "example": "bg_123"
+          },
+          "uploadedFileUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to background file (required for upload type)",
+            "example": "https://example.com/background.jpg"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "AI generation prompt (alternative to customPrompt)",
+            "example": "Beautiful landscape with mountains"
+          }
+        }
+      },
+      "BackgroundSettingsReddit": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["default", "upload", "generate"],
+            "description": "Type of background to use",
+            "example": "default"
+          },
+          "uploadedFileUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to background file (required for upload type)",
+            "example": "https://example.com/background.jpg"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "AI generation prompt",
+            "example": "Abstract geometric pattern"
+          }
+        }
+      },
+      "TaskResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": true
+          },
+          "taskId": {
+            "type": "string",
+            "description": "Unique task identifier for status checking",
+            "example": "video_123"
+          },
+          "message": {
+            "type": "string",
+            "description": "Success message with instructions",
+            "example": "Video creation started. Use the taskId to check status."
+          },
+          "tokensUsed": {
+            "type": "number",
+            "description": "Number of tokens consumed for this request",
+            "example": 150
+          },
+          "remainingTokens": {
+            "type": "number",
+            "description": "Remaining token balance after this request",
+            "example": 4850
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Invalid request parameters"
+          },
+          "error": {
+            "type": "string",
+            "description": "Detailed error information",
+            "example": "Question 1 must have text field"
+          },
+          "details": {
+            "type": "string",
+            "description": "Additional error details",
+            "example": "Try using a different prompt or switch to preset background options"
+          }
+        }
+      },
+      "LongStoryVoiceSettings": {
+        "type": "object",
+        "required": ["voiceId"],
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "ElevenLabs voice ID",
+            "example": "21m00Tcm4TlvDq8ikWAM"
+          },
+          "stability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5,
+            "description": "Voice stability (0-1)",
+            "example": 0.7
+          },
+          "clarity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5,
+            "description": "Voice clarity (0-1)",
+            "example": 0.8
+          }
+        }
+      },
+      "LongStoryRequest": {
+        "type": "object",
+        "required": ["title", "story", "voiceSettings"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the long story video",
+            "example": "The Mysterious Island"
+          },
+          "story": {
+            "type": "string",
+            "description": "The full story text to be narrated",
+            "example": "Once upon a time, in a galaxy far, far away..."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of the video",
+            "example": "A sci-fi adventure story"
+          },
+          "voiceSettings": {
+            "$ref": "#/components/schemas/LongStoryVoiceSettings"
+          },
+          "aspectRatio": {
+            "type": "string",
+            "description": "Aspect ratio for the video (e.g., 16:9, 9:16)",
+            "example": "16:9"
+          },
+          "visualStyle": {
+            "type": "string",
+            "description": "Visual style for the video (e.g., realistic, cartoon)",
+            "example": "realistic"
+          },
+          "subtitleStyle": {
+            "type": "string",
+            "description": "Style of subtitles (e.g., default, minimal, styled)",
+            "example": "default"
+          },
+          "customPrompt": {
+            "type": "string",
+            "description": "Custom prompt for generating visuals",
+            "example": "futuristic cityscape"
+          },
+          "contextImageUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to a context image for visual generation",
+            "example": "https://example.com/image.jpg"
+          },
+          "skip_animations": {
+            "type": "boolean",
+            "description": "Whether to skip animations in the video",
+            "default": false
+          }
+        }
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Authentication failed - invalid or missing API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "User authentication failed"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Request validation failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "missing_fields": {
+                "summary": "Missing required fields",
+                "value": {
+                  "status": false,
+                  "message": "Missing required fields: questions, voiceSettings"
+                }
+              },
+              "invalid_questions": {
+                "summary": "Invalid question format",
+                "value": {
+                  "status": false,
+                  "message": "Question 1 must have text field"
+                }
+              },
+              "invalid_voice": {
+                "summary": "Invalid voice settings",
+                "value": {
+                  "status": false,
+                  "message": "Voice settings with voiceId is required"
+                }
+              }
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Internal server error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Quiz",
+      "description": "Quiz video generation"
+    },
+    {
+      "name": "Fake Text",
+      "description": "Fake text conversation video generation"
+    },
+    {
+      "name": "Reddit Story",
+      "description": "Reddit story video generation"
+    },
+    {
+      "name": "Long Story",
+      "description": "Long story video generation"
+    },
+    {
+      "name": "Task",
+      "description": "Video task status"
+    }
+  ]
+}
